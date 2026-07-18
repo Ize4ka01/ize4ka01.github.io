@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VuzStat — Поиск проходных баллов в вузы 2026</title>
+    <title>Калькулятор баллов | VuzStat</title>
     
     <style>
         :root {
@@ -24,14 +24,23 @@
         nav a:hover { color: var(--main-color); }
         .theme-toggle { background: none; border: 1px solid var(--border-color); color: var(--text-color); padding: 8px 12px; border-radius: 20px; cursor: pointer; font-size: 14px; }
 
-        .search-section { max-width: 800px; margin: 60px auto 40px; padding: 0 20px; text-align: center; }
-        .search-section h1 { margin-bottom: 20px; font-size: 28px; }
-        .search-box input { width: 100%; padding: 18px 25px; border-radius: 50px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); font-size: 16px; outline: none; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .calculator-section { max-width: 800px; margin: 60px auto 40px; background: var(--card-bg); padding: 30px; border-radius: 16px; border: 1px solid var(--border-color); text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .calculator-section h1 { margin-bottom: 10px; font-size: 24px; color: var(--main-color); }
+        .calculator-section p { color: var(--text-muted); margin-bottom: 25px; font-size: 14px; }
+        
+        .inputs-grid { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 25px; }
+        .input-group { display: flex; flex-direction: column; gap: 8px; }
+        .input-group label { font-size: 13px; color: var(--text-muted); font-weight: bold; }
+        .input-group input { width: 90px; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); text-align: center; font-size: 18px; font-weight: bold; }
+        
+        .calc-btn { background-color: var(--main-color); color: white; border: none; padding: 15px 30px; border-radius: 25px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .calc-btn:hover { opacity: 0.9; }
 
         .popular-section { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
-        .popular-section h2 { font-size: 22px; margin-bottom: 20px; }
+        .popular-section h2 { font-size: 22px; margin-bottom: 20px; text-align: center; }
         .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
         
+        /* Стили для карточек те же самые */
         .university-card { background: var(--card-bg); padding: 25px; border-radius: 12px; border: 1px solid var(--border-color); text-decoration: none; color: inherit; display: block; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
         .university-card:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.05); }
         .card-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
@@ -53,23 +62,35 @@
         <a href="index.html" class="logo">🎓 VuzStat</a>
         <nav>
             <a href="index.html">Главная</a>
-            <!-- НОВАЯ ССЫЛКА НА КАЛЬКУЛЯТОР -->
-            <a href="calc.html">Калькулятор баллов</a>
+            <a href="calc.html" style="color: var(--main-color);">Калькулятор баллов</a>
             <button class="theme-toggle" id="theme-btn">🌙 Темная тема</button>
         </nav>
     </header>
 
-    <section class="search-section">
-        <h1>Найди вуз своей мечты</h1>
-        <div class="search-box">
-            <input type="text" id="live-search" placeholder="Введите название вуза, город или направление (например: IT, Москва)...">
+    <section class="calculator-section">
+        <h1>Калькулятор шансов поступления</h1>
+        <p>Введите ваши ожидаемые или полученные баллы ЕГЭ, и мы подберем вузы, в которые вы проходите.</p>
+        <div class="inputs-grid">
+            <div class="input-group">
+                <label>Математика</label>
+                <input type="number" id="math-input" placeholder="0" min="0" max="100">
+            </div>
+            <div class="input-group">
+                <label>Русский язык</label>
+                <input type="number" id="rus-input" placeholder="0" min="0" max="100">
+            </div>
+            <div class="input-group">
+                <label>Предмет по выбору</label>
+                <input type="number" id="third-input" placeholder="0" min="0" max="100">
+            </div>
         </div>
+        <button class="calc-btn" id="calc-button">Подобрать вузы</button>
     </section>
 
     <section class="popular-section">
-        <h2>Доступные учебные заведения</h2>
+        <h2 id="results-title" style="display: none;">Подходящие варианты:</h2>
         <div class="cards-grid" id="vuz-container">
-            <!-- Карточки -->
+            <p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">Здесь появятся вузы после нажатия кнопки "Подобрать".</p>
         </div>
     </section>
 
@@ -79,23 +100,28 @@
 
     <script>
         const universities = [
-            { name: "МГУ им. М.В. Ломоносова", city: "москва", tags: ["it", "математика", "юрист", "медицина"], link: "mgu.html", icon: "🏛️", desc: "Главный вуз страны. Высокие проходные баллы и собственный экзамен.", minBudget: 350, minComm: 240 },
-            { name: "СПбГУ", city: "санкт-петербург питер спб", tags: ["it", "международные отношения", "программирование"], link: "spbgu.html", icon: "⚓", desc: "Один из старейших вузов. Программы международного уровня.", minBudget: 298, minComm: 210 }
+            { name: "МГУ им. М.В. Ломоносова", city: "москва", link: "mgu.html", icon: "🏛️", desc: "Главный вуз страны. Высокие проходные баллы и собственный экзамен.", minBudget: 350, minComm: 240 },
+            { name: "СПбГУ", city: "санкт-петербург", link: "spbgu.html", icon: "⚓", desc: "Один из старейших вузов. Программы международного уровня.", minBudget: 298, minComm: 210 }
         ];
 
         function displayVuz(list) {
             const container = document.getElementById('vuz-container');
+            const title = document.getElementById('results-title');
+            
+            title.style.display = 'block';
             container.innerHTML = "";
+            
             if (list.length === 0) {
-                container.innerHTML = "<p style='color: var(--text-muted); grid-column: 1/-1; text-align: center; padding: 20px;'>Ничего не найдено по вашему запросу...</p>";
+                container.innerHTML = "<p style='color: var(--text-muted); grid-column: 1/-1; text-align: center; padding: 20px;'>К сожалению, с такими баллами вариантов в базе не найдено.</p>";
                 return;
             }
+            
             list.forEach(vuz => {
                 container.innerHTML += 
                     <a href="${vuz.link}" class="university-card">
                         <div class="card-header">
                             <div class="vuz-icon">${vuz.icon}</div>
-                            <div><h3>${vuz.name}</h3><span class="city-badge">${vuz.city.split(' ')[0].toUpperCase()}</span></div>
+                            <div><h3>${vuz.name}</h3><span class="city-badge">${vuz.city.toUpperCase()}</span></div>
                         </div>
                         <p class="vuz-info-text">${vuz.desc}</p>
                         <div class="card-scores">
@@ -106,25 +132,3 @@
                 ;
             });
         }
-
-        document.getElementById('live-search').addEventListener('input', function(e) {
-            let text = e.target.value.toLowerCase().trim();
-            let filtered = universities.filter(vuz => vuz.name.toLowerCase().includes(text) || vuz.city.toLocaleLowerCase().includes(text) || vuz.tags.some(t => t.includes(text)));
-            displayVuz(filtered);
-        });
-
-        const themeBtn = document.getElementById('theme-btn');
-        themeBtn.addEventListener('click', function() {
-            if (document.body.getAttribute('data-theme') === 'dark') {
-                document.body.removeAttribute('data-theme');
-                themeBtn.innerText = "🌙 Темная тема";
-            } else {
-                document.body.setAttribute('data-theme', 'dark');
-                themeBtn.innerText = "☀️ Светлая тема";
-            }
-        });
-
-        displayVuz(universities);
-    </script>
-</body>
-</html>
