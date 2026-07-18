@@ -27,7 +27,7 @@
 <body>
 
     <header>
-        <div class="logo">🎓 VuzStat</div>
+        <div class="logo">🎓 UniScore</div>
         <nav>
             <a href="#">Главная</a>
             <a href="#">Вузы</a>
@@ -59,7 +59,10 @@
     <script>
         function performSearch() {
             let query = document.getElementById('search-input').value.toLowerCase().trim();
-            const db = { "мгу": "mgu.html", "спбгу": "spbgu.html" };
+            const db = { 
+    "мгу": "mgu.html", 
+    "спбгу": "spbgu.html" 
+};
             
             if (db[query]) {
                 window.location.href = db[query];
